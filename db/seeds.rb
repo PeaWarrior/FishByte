@@ -13,3 +13,4 @@ l3 = Location.create(name:"Fresh Kills",water:"Saltwater", acres_mile: 8344, fis
 e1 = Event.create(user_id: u3.id, location_id: l3.id, date: Time.new(2020,7,4,2), price: 5)
 e2 = Event.create(user_id: u2.id, location_id: l1.id, date: Time.new(2020,8,4,9), price: 5)
 e3 = Event.create(user_id: u1.id, location_id: l2.id, date: Time.new(2020,9,4,6), price: 5)
+e4 = Event.create(user_id: u1.id, location_id: l1.id, date: Time.new(2020,10,5,6), price: 10)
