@@ -43,7 +43,7 @@ class User < ActiveRecord::Base
         if choice  == "My Events"
             self.my_events
         elsif choice == "Upcoming Events"
-            self.check_events
+            self.show_upcoming_events
         elsif choice == "Create an Event"
             self.create_event
         elsif choice == "log out"
@@ -52,15 +52,27 @@ class User < ActiveRecord::Base
         end
     end
 
-    def check_events
+    def show_upcoming_events
         prompt = TTY::Prompt.new
-        events = Event.all.map{|event|"#{event.location.name}, $#{event.price}, #{event.date}"}
-        prompt.multi_select("Select event(s)", events)
+       choices = prompt.multi_select("Select event(s)", Event.upcoming_events)
+        selected_choices(choices).each{ |choice| sign_up(choice)}
+       
+    end
+
+    def selected_choices(choices)
+        choices.map do |choice|
+            choice.split(", ")
+        end
+    end
+
+    def sign_up(choice) 
+        event = Event.find_by(name: choice[0], date: choice[3].to_datetime)
+        Participant.create(user_id: self.id, event_id: event.id)
     end
 
     def my_events
         events = self.events.map do |event|
-            "Location: ".colorize(:red) + "#{event.location.name}\n" + "Date: ".colorize(:red) + "#{event.date}" + " Price: ".colorize(:red) + "$#{event.price}"
+            "Event: ".colorize(:red) + "#{event.name}\n" + "Location: ".colorize(:red) + "#{event.location.name}\n" + "Date: ".colorize(:red) + "#{event.date}" + " Price: ".colorize(:red) + "$#{event.price}"
         end
         puts events
     end
@@ -68,8 +80,11 @@ class User < ActiveRecord::Base
     def create_event
         prompt = TTY::Prompt.new
         location_choice = prompt.select("Select location", Location.names)
-
     end
+
+
+
+
 
 end
 
