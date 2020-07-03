@@ -10,13 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_03_141121) do
+ActiveRecord::Schema.define(version: 2020_07_03_162513) do
 
   create_table "events", force: :cascade do |t|
     t.integer "user_id"
     t.integer "location_id"
     t.datetime "date"
-    t.integer "price"
+    t.float "price"
   end
 
   create_table "locations", force: :cascade do |t|
@@ -24,6 +24,11 @@ ActiveRecord::Schema.define(version: 2020_07_03_141121) do
     t.string "water"
     t.integer "acres_mile"
     t.string "fish_species"
+  end
+
+  create_table "participants", force: :cascade do |t|
+    t.integer "user_id"
+    t.integer "event_id"
   end
 
   create_table "users", force: :cascade do |t|
