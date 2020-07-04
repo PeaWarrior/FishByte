@@ -9,4 +9,9 @@ class Event < ActiveRecord::Base
         end
     end
 
+    def self.destroy_event(selected_event_id)
+        Event.find(selected_event_id).destroy
+        puts "Event canceled!".colorize(:red)
+    end
+
 end

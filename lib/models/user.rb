@@ -13,8 +13,7 @@ class User < ActiveRecord::Base
         con_pswd = prompt.mask("Confirm password")
         if pswd == con_pswd
             puts "User created!"
-            new_user = User.create(username:username, name: name, age: age, password: pswd)
-            new_user.main_menu
+            User.create(username:username, name: name, age: age, password: pswd)
         end
     end
     
@@ -22,74 +21,74 @@ class User < ActiveRecord::Base
         prompt= TTY::Prompt.new
         username = prompt.ask("What is your username?")
         pswd = prompt.mask("What is your password?")
-        user_check = User.find_by(username: username, password:pswd)
-        if !user_check
+        found_user = User.find_by(username: username, password:pswd)
+        if !found_user
             puts ColorizedString["Incorrect username and/or password!"].red
             self.login
-        else 
-            user_check.main_menu
+        else
+            found_user
         end
     end
-    
-    def main_menu
-        system 'clear'
-        puts "Welcome #{self.username}!"
-        prompt = TTY::Prompt.new
-        choice = prompt.select("Main Menu") do |menu| 
-            menu.choice "My Events"
-            menu.choice "Create an Event"
-            menu.choice "Find Upcoming Events"
-            menu.choice "Log out"
-        end
-        
-        case choice
-        when "My Events"
-            self.my_events
-        when "Find Upcoming Events"
-            self.find_upcoming_events
-        when "Create an Event"
-            self.create_event
-        when "Log out"
-            interface = Interface.new()
-            interface.welcome
-            interface.login_or_register
-        end
+
+    def event_formatted(event)
+        {name: "\n    #{event.name}".colorize(:blue) + " at " + "#{event.location.name}\n" + "    #{event.date.strftime("%B %d, %Y\n    %A %I:%M %p")}", value: event.id}
     end
     
     
     def my_events
         system 'clear'
         prompt = TTY::Prompt.new
-        if self.events = []
+        if self.events == []
             puts "You have no created events!".colorize(:red)
+            sleep(3)
             main_menu
         else
             show_my_events = self.events.map do |event|
-                {name: "\n    #{event.name}".colorize(:blue) + " at " + "#{event.location.name}\n" + "    #{event.date.strftime("%B %d, %Y\n    %A %I:%M %p")}", value: event.id}
+                event_formatted(event)
             end
-            selected_event = prompt.select("Check event", show_my_events)
-            cancel_event?(selected_event)
+            selected_event_id = prompt.select("Check event", show_my_events)
+            case cancel_or_update?
+            when "Update Event"
+                self.update_event(selected_event_id)
+            when "Cancel Event"
+                self.cancel_event?(selected_event_id)
+            else
+                self.main_menu
+            end
         end
     end
-    
-    def cancel_event?(selected_event)
+
+    def cancel_or_update?
         prompt = TTY::Prompt.new
-        choice = prompt.select("Do you want to cancel this event?") do |menu|
+        prompt.select("Update or cancel event?") do |menu|
+            menu.choice "Update Event"
+            menu.choice "Cancel Event"
+            menu.choice "Main Menu"
+        end
+    end
+
+    def update_event(selected_event_id)
+        prompt = TTY::Prompt.new
+        choice = prompt.select("What do you want to update") do |menu|
+            menu.choice "Event Name"
+            menu.choice "Event Date"
+            menu.choice "Event Price"
+        end
+        # add update price, name, and date
+    end
+    
+    def cancel_event?(selected_event_id)
+        prompt = TTY::Prompt.new
+        choice = prompt.select("Are you sure you want to cancel this event?") do |menu|
             prompt.warn("WARNING: Action can not be undone.")
             menu.choice "Yes"
             menu.choice "No"
         end
-        case choice
-        when "Yes"
-            Participant.where(event_id: selected_event).find_each do |participant|
-                participant.destroy
-            end
-            event = Event.find(selected_event)
-            event.destroy
-            puts "Event canceled!"
-        else
-            main_menu
+        if choice == "Yes"
+            Participant.destroy_all_participants(selected_event_id)
+            Event.destroy_event(selected_event_id)
         end
+        sleep(3)
         main_menu
     end
     
@@ -97,6 +96,7 @@ class User < ActiveRecord::Base
         prompt = TTY::Prompt.new
         choices = prompt.multi_select("Sign up for event(s)", Event.upcoming_events)
         sign_up_to_event(choices)
+        sleep(3)
         main_menu
     end
     
