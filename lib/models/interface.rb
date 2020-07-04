@@ -45,11 +45,11 @@ class Interface
         
         case choice
         when "My Events"
-            user.my_events
+            my_events
         when "Find Upcoming Events"
-            user.find_upcoming_events
+            find_upcoming_events
         when "Create an Event"
-            user.create_event
+            create_event
         when "Log out"
             interface = Interface.new()
             interface.welcome
@@ -78,11 +78,11 @@ class Interface
             selected_event_id = prompt.select("Check event", show_my_events)
             case cancel_or_update?
             when "Update Event"
-                user.update_event(selected_event_id)
+                update_event(selected_event_id)
             when "Cancel Event"
-                user.cancel_event?(selected_event_id)
+                cancel_event?(selected_event_id)
             else
-                user.main_menu
+                main_menu
             end
         end
     end
@@ -94,7 +94,6 @@ class Interface
             menu.choice "Main Menu"
         end
     end
-  end
 
     def update_event(selected_event_id)
         choice = prompt.select("What do you want to update") do |menu|
