@@ -59,3 +59,40 @@ class Interface
     end
 
 end
+
+def update_event(selected_event_id)
+    choice = prompt.select("What do you want to update") do |menu|
+        menu.choice "Event Name"
+        menu.choice "Event Date"
+        menu.choice "Event Price"
+    end
+    # add update price, name, and date
+end
+
+def cancel_event?(selected_event_id)
+    choice = prompt.select("Are you sure you want to cancel this event?") do |menu|
+        prompt.warn("WARNING: Action can not be undone.")
+        menu.choice "Yes"
+        menu.choice "No"
+    end
+    if choice == "Yes"
+        Participant.destroy_all_participants(selected_event_id)
+        Event.destroy_event(selected_event_id)
+    end
+    sleep(3)
+    main_menu
+end
+
+def find_upcoming_events
+    choices = prompt.multi_select("Sign up for event(s)", Event.upcoming_events)
+    sign_up_to_event(choices)
+    sleep(3)
+    main_menu
+end
+
+def sign_up_to_event(choices)
+    choices.each do |choice|
+        Participant.create(event_id: choice, user_id: user.id)
+    end
+    puts "Sign up(s) successful! Can't wait to see you there!"
+end
