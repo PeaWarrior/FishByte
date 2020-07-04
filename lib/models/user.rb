@@ -3,10 +3,7 @@ class User < ActiveRecord::Base
     has_many :locations, through: :events
     has_many :participants
 
-    def sign_up_event(event)
-        Participant.create(user_id: self.id, event_id: event.id)
-    end
-
+    
     def self.register
         prompt= TTY::Prompt.new
         username = prompt.ask("Choose a username")
@@ -15,10 +12,12 @@ class User < ActiveRecord::Base
         pswd = prompt.mask("Choose a password")
         con_pswd = prompt.mask("Confirm password")
         if pswd == con_pswd
-            User.create(username:username, name: name, age: age, password: pswd)
+            puts "User created!"
+            new_user = User.create(username:username, name: name, age: age, password: pswd)
+            new_user.main_menu
         end
     end
-
+    
     def self.login
         prompt= TTY::Prompt.new
         username = prompt.ask("What is your username?")
@@ -31,52 +30,84 @@ class User < ActiveRecord::Base
             user_check.main_menu
         end
     end
-
+    
     def main_menu
+        system 'clear'
+        puts "Welcome #{self.username}!"
         prompt = TTY::Prompt.new
         choice = prompt.select("Main Menu") do |menu| 
             menu.choice "My Events"
-            menu.choice "Upcoming Events"
             menu.choice "Create an Event"
-            menu.choice "log out"
+            menu.choice "Find Upcoming Events"
+            menu.choice "Log out"
         end
-        if choice  == "My Events"
+        
+        case choice
+        when "My Events"
             self.my_events
-        elsif choice == "Upcoming Events"
-            self.show_upcoming_events
-        elsif choice == "Create an Event"
+        when "Find Upcoming Events"
+            self.find_upcoming_events
+        when "Create an Event"
             self.create_event
-        elsif choice == "log out"
-            Interface.welcome
-            Interface.login_or_register
+        when "Log out"
+            interface = Interface.new()
+            interface.welcome
+            interface.login_or_register
         end
     end
-
-    def show_upcoming_events
-        prompt = TTY::Prompt.new
-       choices = prompt.multi_select("Select event(s)", Event.upcoming_events)
-        selected_choices(choices).each{ |choice| sign_up(choice)}
-       
-    end
-
-    def selected_choices(choices)
-        choices.map do |choice|
-            choice.split(", ")
-        end
-    end
-
-    def sign_up(choice) 
-        event = Event.find_by(name: choice[0], date: choice[3].to_datetime)
-        Participant.create(user_id: self.id, event_id: event.id)
-    end
-
+    
+    
     def my_events
-        events = self.events.map do |event|
-            "Event: ".colorize(:red) + "#{event.name}\n" + "Location: ".colorize(:red) + "#{event.location.name}\n" + "Date: ".colorize(:red) + "#{event.date}" + " Price: ".colorize(:red) + "$#{event.price}"
+        system 'clear'
+        prompt = TTY::Prompt.new
+        if self.events = []
+            puts "You have no created events!".colorize(:red)
+            main_menu
+        else
+            show_my_events = self.events.map do |event|
+                {name: "\n    #{event.name}".colorize(:blue) + " at " + "#{event.location.name}\n" + "    #{event.date.strftime("%B %d, %Y\n    %A %I:%M %p")}", value: event.id}
+            end
+            selected_event = prompt.select("Check event", show_my_events)
+            cancel_event?(selected_event)
         end
-        puts events
+    end
+    
+    def cancel_event?(selected_event)
+        prompt = TTY::Prompt.new
+        choice = prompt.select("Do you want to cancel this event?") do |menu|
+            prompt.warn("WARNING: Action can not be undone.")
+            menu.choice "Yes"
+            menu.choice "No"
+        end
+        case choice
+        when "Yes"
+            Participant.where(event_id: selected_event).find_each do |participant|
+                participant.destroy
+            end
+            event = Event.find(selected_event)
+            event.destroy
+            puts "Event canceled!"
+        else
+            main_menu
+        end
+        main_menu
+    end
+    
+    def find_upcoming_events
+        prompt = TTY::Prompt.new
+        choices = prompt.multi_select("Sign up for event(s)", Event.upcoming_events)
+        sign_up_to_event(choices)
+        main_menu
+    end
+    
+    def sign_up_to_event(choices)
+        choices.each do |choice|
+            Participant.create(event_id: choice, user_id: self.id)
+        end
+        puts "Sign up(s) successful! Can't wait to see you there!"
     end
 
+    # not finished
     def create_event
         prompt = TTY::Prompt.new
         location_choice = prompt.select("Select location", Location.names)

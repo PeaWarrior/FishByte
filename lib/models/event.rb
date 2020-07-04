@@ -4,8 +4,9 @@ class Event < ActiveRecord::Base
     has_many :participants
 
     def self.upcoming_events
-      self.all.map{|event|"#{event.name}, #{event.location.name}, $#{event.price}, #{event.date}"}
+        self.all.map do |event|
+            {name: "\n    #{event.name}".colorize(:blue) + " at " + "#{event.location.name}\n" + "    #{event.date.strftime("%B %d, %Y\n    %A %I:%M %p")}", value: event.id}
+        end
     end
-
 
 end
