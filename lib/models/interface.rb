@@ -94,7 +94,6 @@ class Interface
             menu.choice "Main Menu"
         end
     end
-  end
 
     def update_event(selected_event_id)
         choice = prompt.select("What do you want to update") do |menu|
