@@ -1,6 +1,7 @@
 User.destroy_all
 Location.destroy_all
 Event.destroy_all
+Participant.destroy_all
 
 u1 = User.create(name:"Jack", age: 27, username:"jacksback",password: "123")
 u2 = User.create(name:"Chris", age: 26, username:"Fisherman",password: "Bass")
@@ -14,3 +15,8 @@ e1 = Event.create(name:"Fishing Competition",user_id: u3.id, location_id: l3.id,
 e2 = Event.create(name: "Fishing 6ft Apart",user_id: u2.id, location_id: l1.id, date: Time.new(2020,8,4,9), price: 5)
 e3 = Event.create(name:"Father's day Fishing",user_id: u1.id, location_id: l2.id, date: Time.new(2020,9,4,6), price: 5)
 e4 = Event.create(name:"Fish and Fashion",user_id: u1.id, location_id: l1.id, date: Time.new(2020,10,5,6), price: 10)
+
+Participant.create(event_id: e1.id, user_id: u3.id)
+Participant.create(event_id: e2.id, user_id: u2.id)
+Participant.create(event_id: e3.id, user_id: u1.id)
+Participant.create(event_id: e4.id, user_id: u1.id)
