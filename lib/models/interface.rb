@@ -58,7 +58,43 @@ class Interface
         end
     end
 
-end
+
+    # --------------------
+
+    def event_formatted(event)
+        {name: "\n    #{event.name}".colorize(:blue) + " at " + "#{event.location.name}\n" + "    #{event.date.strftime("%B %d, %Y\n    %A %I:%M %p")}", value: event.id}
+    end
+    
+    def my_events
+        system 'clear'
+        if user.events == []
+            puts "You have no created events!".colorize(:red)
+            sleep(3)
+            main_menu
+        else
+            show_my_events = user.events.map do |event|
+                event_formatted(event)
+            end
+            selected_event_id = prompt.select("Check event", show_my_events)
+            case cancel_or_update?
+            when "Update Event"
+                user.update_event(selected_event_id)
+            when "Cancel Event"
+                user.cancel_event?(selected_event_id)
+            else
+                user.main_menu
+            end
+        end
+    end
+
+    def cancel_or_update?
+        prompt.select("Update or cancel event?") do |menu|
+            menu.choice "Update Event"
+            menu.choice "Cancel Event"
+            menu.choice "Main Menu"
+        end
+    end
+  end
 
 def update_event(selected_event_id)
     choice = prompt.select("What do you want to update") do |menu|

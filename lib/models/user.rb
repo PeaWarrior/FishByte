@@ -30,7 +30,6 @@ class User < ActiveRecord::Base
         end
     end
 
-
     # not finished
     def create_event
         prompt = TTY::Prompt.new
