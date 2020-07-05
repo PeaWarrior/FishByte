@@ -142,11 +142,13 @@ class Interface
         end
         location_result = prompt.select("Please choose a location", Location.names)
         location_instance = Location.find_by(name: location_result)
+
         #### resul[:time] string to integer add to datetime 
         hour = result[:time].split(":")[0].to_i
         minute =result[:time].split(":")[1].to_i
         event_datetime = result[:date].change(hour: hour, min: minute) #changes datetime's hour in create event
-        #  
+        # 
+        
         e1 = Event.create(name: result[:name], date: event_datetime, price: result[:price],user_id: user.id, location_id: location_instance.id)
         Participant.create(event_id: e1.id, user_id: user.id)
         # Event.participatns should = 1
