@@ -3,9 +3,15 @@ class Event < ActiveRecord::Base
     belongs_to :location
     has_many :participants
 
-    def self.upcoming_events
-        self.all.map do |event|
-            {name: "\n    #{event.name}".colorize(:blue) + " at " + "#{event.location.name}\n" + "    #{event.date.strftime("%B %d, %Y\n    %A %I:%M %p")}", value: event.id}
+    def self.upcoming_events(user)
+        self.unregistered_events(user).map do |event|
+            {name: "#{event.name.colorize(:light_blue)} at #{event.location.name.colorize(:light_blue)}\n    #{"by #{event.user.name}".colorize(:light_black)}\n    #{event.date.strftime("%b %d %Y")}  Attending: #{event.participants.count}\n   #{event.date.strftime(" %a %I:%M%P")}  Price: $#{event.price}\n", value: event.id}
+        end
+    end
+
+    def self.unregistered_events(user)
+        self.all.select do |event|
+            !Participant.find_by(event_id: event.id, user_id: user.id)
         end
     end
 
@@ -62,7 +68,6 @@ class Event < ActiveRecord::Base
         self.date > Time.now + 604800 ? self.update(price: new_price.to_i) : (puts "Unable to edit price 7 days before event.".colorize(:red))
     end
 
-
     def cancel_event?
         prompt = TTY::Prompt.new
         prompt.warn("WARNING: Action can not be undone.")
@@ -73,6 +78,11 @@ class Event < ActiveRecord::Base
                 }
             menu.choice "No"
         end
+    end
+
+    def show_participants
+        prompt = TTY::Prompt.new
+        prompt.select("Participants:", Participant.participant_names(self), per_page: 5)
     end
 
 end
