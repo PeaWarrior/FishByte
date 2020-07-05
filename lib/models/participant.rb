@@ -8,4 +8,9 @@ class Participant < ActiveRecord::Base
         end
     end
 
+    def self.cancel_attendance(user_id, event_id)
+        Participant.find_by(user_id: user_id, event_id: event_id).destroy
+        puts "Canceled attendance!".colorize(:red)
+    end
+
 end
