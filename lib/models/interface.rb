@@ -50,10 +50,10 @@ class Interface
         {name: "\n    #{event.name}".colorize(:blue) + " at " + "#{event.location.name}\n" + "    #{event.date.strftime("%A %B %d, %Y | %I:%M %p")}\n" + "    Organized by: #{event.user.name}\n" + "    Attending: #{event.participants.count}", value: event.id}
     end
 
-    def no_created_events
-        puts "You have no created events!".colorize(:red)
-            sleep(1)
-            main_menu
+    def no_events
+        puts "You have no events!".colorize(:red)
+        sleep(1)
+        main_menu
     end
 
     def show_all_my_events
@@ -64,8 +64,8 @@ class Interface
     
     def my_events
         system 'clear'
-        if user.events.reload == []
-            no_created_events
+        if user.events.reload == [] && user.participants.reload == []
+            no_events
         else
             selected_event_id = prompt.select("Check event", show_all_my_events, per_page: 3)
 
@@ -112,11 +112,36 @@ class Interface
         main_menu
     end
 
-    def sign_up_to_event(choices)
-        choices.each do |choice|
-            Participant.create(event_id: choice, user_id: user.id)
+    def sign_up_message(previously, successfully)
+        previous_message = ""
+        successful_message = ""
+        if previously.length > 0
+            previously.each do |event_name|
+                previous_message += "\n#{event_name}"
+            end
+            puts "You have already signed up for: " + "#{previous_message}".colorize(:red)
         end
-        puts "Sign up(s) successful! Can't wait to see you there!"
+        if successfully.length > 0
+            successfully.each do |event_name|
+                successful_message += "\n#{event_name}"
+            end
+            puts "You have successfully signed up for: " + "#{successful_message}".colorize(:light_blue)
+        end
+    end
+
+    def sign_up_to_event(choices)
+        previously = []
+        successfully = []
+        choices.each do |choice|
+            if Participant.find_by(event_id: choice, user_id: user.id)
+                previously << Event.find(choice).name
+            else
+                Participant.create(event_id: choice, user_id: user.id)
+                successfully << Event.find(choice).name
+            end
+        end
+        sign_up_message(previously, successfully)
+        sleep(2)
     end
 
 end
