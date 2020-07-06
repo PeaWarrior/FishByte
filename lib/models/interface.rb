@@ -34,6 +34,7 @@ class Interface
             menu.choice "My Events", -> {my_events}
             menu.choice "Create an Event", -> {create_event}
             menu.choice "Find Upcoming Events", -> {find_upcoming_events}
+            menu.choice "Settings", -> {settings}
             menu.choice "Log out", -> {log_out}
         end
     end
@@ -98,7 +99,7 @@ class Interface
     end
 
     def update_event(event)
-        choice = prompt.select("What do you want to update") do |menu|
+        choice = prompt.select("What do you want to update?") do |menu|
             menu.choice "Event Name", -> {event.update_event_name}
             menu.choice "Event Date", -> {event.update_date}
             menu.choice "Event Price", -> {event.update_price}
@@ -164,7 +165,20 @@ class Interface
         e1 = Event.create(name: result[:name], date: event_datetime, price: result[:price],user_id: user.id, location_id: location_instance.id)
         Participant.create(event_id: e1.id, user_id: user.id)
         # Event.participatns should = 1
-        puts "NEW EVENT COMPLETED! Have fun at #{result[:name]} event!!!".colorize(:green)
+        puts "NEW EVENT COMPLETED! Have fun at #{result[:name]}!".colorize(:green)
     end
-    
+
+    def settings
+       var = prompt.select("What would you like to update?") do |menu|
+            menu.choice "Name", -> {user.update_name}
+            menu.choice "Age", -> {user.update_age}
+            menu.choice "Password", -> {user.change_password}
+            menu.choice "Delete Account", -> {user.delete_account}
+            menu.choice "Main Menu", -> {main_menu}
+        end
+
+        main_menu
+        
+    end
+
 end
