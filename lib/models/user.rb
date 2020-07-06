@@ -71,6 +71,8 @@ class User < ActiveRecord::Base
                if pswd == self.password
                 self.destroy
                 new_inter = Interface.new
+                puts ColorizedString["ACCOUNT DESTROYED"].red 
+                sleep(3)
                 new_inter.welcome
                 new_inter.login_or_register
             else

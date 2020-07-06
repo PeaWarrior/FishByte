@@ -148,8 +148,8 @@ class Interface
     def create_event
            result = prompt.collect do
             key(:name).ask('Event Name:')
-            key(:date).ask('Date:', value: "DD/MM/YYYY", convert: :datetime)
-            key(:time).ask('Time of Event:',value: "HH:MM", convert: :string)
+            key(:date).ask('Date: "YYMMDD":', convert: :datetime)
+            key(:time).ask('Time of Event "HH:MM":',convert: :string)
             # binding.pry
             key(:price).ask('Price: $', convert: :int)
         end
