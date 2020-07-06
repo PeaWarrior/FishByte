@@ -19,7 +19,7 @@ class User < ActiveRecord::Base
     end
 
     def self.ask_dob
-        prompt= TTY::Prompt.new
+        prompt = TTY::Prompt.new
         user_dob = prompt.ask("What is your date of birth? MM/DD/YYYY") do |question|
             question.validate (/\d{1,2}\/\d{1,2}\/\d{4}/)
         end
@@ -95,21 +95,21 @@ class User < ActiveRecord::Base
         prompt.warn("WARNING: Action can not be undone.")
         choice = prompt.select("Are you sure you want to delete this account") do |menu|
             menu.choice "Yes", -> {
-               pswd = prompt.mask("What is your password?")
-               if pswd == self.password
-                self.destroy
-                new_inter = Interface.new
-                puts ColorizedString["ACCOUNT DESTROYED"].red 
-                sleep(3)
-                new_inter.welcome
-                new_inter.login_or_register
-            else
-                puts ColorizedString["Incorrect password"].red 
-               end
-                }
-                menu.choice "No" 
-
-            end
+                pswd = prompt.mask("What is your password?")
+                if pswd == self.password
+                    self.destroy
+                    new_inter = Interface.new
+                    puts ColorizedString["ACCOUNT DESTROYED"].red 
+                    sleep(3)
+                    new_inter.welcome
+                    new_inter.login_or_register
+                else
+                    puts ColorizedString["Incorrect password"].red 
+                end
+            }
+            menu.choice "No" 
+        end
+    end
             
 end
 

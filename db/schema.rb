@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_06_151030) do
+ActiveRecord::Schema.define(version: 2020_07_06_210638) do
 
   create_table "events", force: :cascade do |t|
     t.string "name"
@@ -22,7 +22,7 @@ ActiveRecord::Schema.define(version: 2020_07_06_151030) do
 
   create_table "locations", force: :cascade do |t|
     t.string "name"
-    t.string "water"
+    t.string "county"
     t.integer "acres_mile"
     t.string "fish_species"
   end
