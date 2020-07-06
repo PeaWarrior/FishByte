@@ -48,7 +48,7 @@ class Interface
     end
 
     def event_formatted(event)
-        {name: "\n    #{event.name}".colorize(:blue) + " at " + "#{event.location.name}\n" + "    #{event.date.strftime("%A %B %d, %Y | %I:%M %p")}\n" + "    Organized by: #{event.user.name}\n" + "    Attending: #{event.participants.count}", value: event.id}
+        {name: "  #{event.name.colorize(:light_blue)} at #{event.location.name.colorize(:light_blue)}\n    #{"by #{event.user.name}".colorize(:light_black)}\n    #{event.date.strftime("%b %d %Y")}  Attending: #{event.participants.count}\n   #{event.date.strftime(" %a %I:%M%P")}  Price: $#{event.price}\n", value: event.id}
     end
 
     def no_events
@@ -68,11 +68,11 @@ class Interface
         if user.events.reload == [] && user.participants.reload == []
             no_events
         else
-            selected_event_id = prompt.select("Check event", show_all_my_events, per_page: 3)
+            selected_event_id = prompt.select("Check event", show_all_my_events, per_page: 5)
 
             if Event.find_by(id: selected_event_id).user_id == user.id
                 event = Event.find_by(id: selected_event_id)
-                cancel_or_update?(event)
+                event_menu(event)
             else 
                 if participant_actions == "Cancel Attendance"
                     Participant.cancel_attendance(user.id, selected_event_id)
@@ -90,8 +90,9 @@ class Interface
         end
     end
 
-    def cancel_or_update?(event)
-        prompt.select("Update or cancel event?") do |menu|
+    def event_menu(event)
+        prompt.select("Event Menu") do |menu|
+            menu.choice "Show Participants", -> {event.show_participants}
             menu.choice "Update Event", -> {update_event(event)}
             menu.choice "Cancel Event", -> {event.cancel_event?}
             menu.choice "Main Menu", -> {main_menu}
@@ -107,42 +108,28 @@ class Interface
     end
 
     def find_upcoming_events
-        choices = prompt.multi_select("Sign up for event(s)", Event.upcoming_events)
-        sign_up_to_event(choices)
-        sleep(1)
+        if Event.upcoming_events(user).count > 0
+            event_ids = prompt.multi_select("Sign up for event(s)", Event.upcoming_events(user), per_page: 4, echo:false)
+            sign_up_to_event(event_ids)
+        else puts "There are no new events near you!".colorize(:red)
+        end
+        sleep(2)
         main_menu
     end
 
-    def sign_up_message(previously, successfully)
-        previous_message = ""
-        successful_message = ""
-        if previously.length > 0
-            previously.each do |event_name|
-                previous_message += "\n#{event_name}"
-            end
-            puts "You have already signed up for: " + "#{previous_message}".colorize(:red)
-        end
-        if successfully.length > 0
-            successfully.each do |event_name|
-                successful_message += "\n#{event_name}"
-            end
-            puts "You have successfully signed up for: " + "#{successful_message}".colorize(:light_blue)
+    def sign_up_message(event_ids)
+        puts "You have successfully signed up for: "
+        event_ids.each do |event_id|
+            puts "#{Event.find(event_id).name.colorize(:light_blue)}"
         end
     end
 
-    def sign_up_to_event(choices)
-        previously = []
-        successfully = []
-        choices.each do |choice|
-            if Participant.find_by(event_id: choice, user_id: user.id)
-                previously << Event.find(choice).name
-            else
-                Participant.create(event_id: choice, user_id: user.id)
-                successfully << Event.find(choice).name
-            end
+    def sign_up_to_event(event_ids)
+        event_ids.each do |event_id|
+            Participant.create(event_id: event_id, user_id: user.id)
         end
-        sign_up_message(previously, successfully)
-        sleep(2)
+        sign_up_message(event_ids)
+        sleep(1)
     end
 
     def create_event
