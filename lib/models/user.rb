@@ -65,8 +65,11 @@ class User < ActiveRecord::Base
 
     def update_age
         prompt = TTY::Prompt.new
-        age_update = prompt.ask("New age:")
-        self.update(age: age_update)
+        age_update = prompt.ask("DOB MM/DD/YYY:")
+        birthday = Date.new(age_update)
+        ac = AgeCalculator.new(birthday)
+        binding.pry
+        self.update(age: ac)
         puts ColorizedString["Age has been updated to #{age_update}!"].green
         
     end
@@ -96,6 +99,8 @@ class User < ActiveRecord::Base
                if pswd == self.password
                 self.destroy
                 new_inter = Interface.new
+                puts ColorizedString["ACCOUNT DESTROYED"].red 
+                sleep(3)
                 new_inter.welcome
                 new_inter.login_or_register
             else
@@ -103,7 +108,8 @@ class User < ActiveRecord::Base
                end
                 }
                 menu.choice "No" 
+
             end
-    end
+            
 end
 

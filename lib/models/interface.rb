@@ -135,8 +135,8 @@ class Interface
     def create_event
            result = prompt.collect do
             key(:name).ask('Event Name:')
-            key(:date).ask('Date:', value: "DD/MM/YYYY", convert: :datetime)
-            key(:time).ask('Time of Event:',value: "HH:MM", convert: :string)
+            key(:date).ask('Date: "YYMMDD":', convert: :datetime)
+            key(:time).ask('Time of Event "HH:MM":',convert: :string)
             # binding.pry
             key(:price).ask('Price: $', convert: :int)
         end
@@ -153,6 +153,8 @@ class Interface
         Participant.create(event_id: e1.id, user_id: user.id)
         # Event.participatns should = 1
         puts "NEW EVENT COMPLETED! Have fun at #{result[:name]}!".colorize(:green)
+        sleep(3)
+        main_menu
     end
 
     def settings
@@ -163,7 +165,7 @@ class Interface
             menu.choice "Delete Account", -> {user.delete_account}
             menu.choice "Main Menu", -> {main_menu}
         end
-
+        sleep(3)
         main_menu
         
     end
