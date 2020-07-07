@@ -11,3 +11,4 @@ gem "faker"
 gem 'tty-prompt'
 gem "colorize"
 gem "age_calculator"
+gem "rest-client"
