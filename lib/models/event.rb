@@ -28,7 +28,7 @@ class Event < ActiveRecord::Base
 
     # Update event methods
     def update_event_name
-        new_name = self.prompt.ask("New event name:")
+        new_name = self.class.prompt.ask("New event name:")
         self.update(name: new_name)
     end
 
@@ -43,13 +43,13 @@ class Event < ActiveRecord::Base
     end
 
     def ask_date
-        self.prompt.ask("Please enter a new date: YYYY/MM/DD") do |answer|
+        self.class.prompt.ask("Please enter a new date: YYYY/MM/DD") do |answer|
             answer.validate /[0-9]{4}\/[0-1][0-9]\/[0-3][0-9]/
         end.split("/")
     end
     
     def ask_time
-        time = self.prompt.ask("Please enter new time in this format, HH:MM") do |answer|
+        time = self.class.prompt.ask("Please enter new time in this format, HH:MM") do |answer|
             answer.validate /[0-2][0-9]\:[0-5][0-9]/
         end.split(":").map do |set|
             set.to_i
@@ -64,15 +64,15 @@ class Event < ActiveRecord::Base
     end
 
     def update_price
-        new_price = self.prompt.ask("New price:") do |answer|
+        new_price = self.class.prompt.ask("New price:") do |answer|
             answer.validate /[0-9]+$/
         end
         self.date > Time.now + 604800 ? self.update(price: new_price.to_i) : (puts "Unable to edit price 7 days before event.".colorize(:red))
     end
 
     def cancel_event?
-        self.prompt.warn("WARNING: Action can not be undone.")
-        choice = self.prompt.select("Are you sure you want to cancel this event?") do |menu|
+        self.class.prompt.warn("WARNING: Action can not be undone.")
+        choice = self.class.prompt.select("Are you sure you want to cancel this event?") do |menu|
             menu.choice "Yes", -> {
                 Participant.destroy_all_participants(self.id)
                 Event.destroy_event(self.id)
@@ -82,7 +82,7 @@ class Event < ActiveRecord::Base
     end
 
     def show_participants
-        self.class.prompt.select("Participants:", Participant.participant_names(self), per_page: 5)
+        self.class.prompt.select("Participants:", Participant.participant_names(self), per_page: 10)
     end
 
 end
