@@ -5,22 +5,37 @@ class User < ActiveRecord::Base
 
     
     def self.register
-        prompt= TTY::Prompt.new
+        prompt = TTY::Prompt.new
         username = prompt.ask("Choose a username")
         name = prompt.ask("What is your name?")
         dob = self.ask_dob
+        pswd = self.register_password
+        self.successful_registration(username, name, dob, pswd)
+    end
+
+    def self.register_password
+        prompt = TTY::Prompt.new
         pswd = prompt.mask("Create a password")
         con_pswd = prompt.mask("Confirm password")
-        if pswd == con_pswd
-            puts "User created!"
-            User.create(username:username, name: name, dob: dob, password: pswd)
-            sleep(1)
-        end
+        pswd == con_pswd ? pswd : self.register_password_unmatched
+    end
+
+    def self.register_password_unmatched
+        puts "Passwords did not match, please try again.".colorize(:red)
+        sleep(2)
+        print "\r" + ("\e[A\e[K"*3)
+        self.register_password
+    end
+
+    def self.successful_registration(username, name, dob, pswd)
+        puts "Account successfully created!".colorize(:green)
+        sleep(2)
+        User.create(username: username, name: name, dob: dob, password: pswd)
     end
 
     def self.ask_dob
         prompt = TTY::Prompt.new
-        user_dob = prompt.ask("What is your date of birth? MM/DD/YYYY") do |question|
+        user_dob = prompt.ask("What is your date of birth?\n", value: "MM/DD/YYYY\r ".colorize(:light_black)) do |question|
             question.validate (/\d{1,2}\/\d{1,2}\/\d{4}/)
         end
         dob = user_dob.split("/").map do |element|
@@ -47,12 +62,12 @@ class User < ActiveRecord::Base
         username = prompt.ask("What is your username?")
         pswd = prompt.mask("What is your password?")
         found_user = User.find_by(username: username, password:pswd)
-        if !found_user
-            puts ColorizedString["Incorrect username and/or password!"].red
-            self.login
-        else
-            found_user
-        end
+        found_user ? found_user : self.incorrect_username_or_password
+    end
+
+    def self.incorrect_username_or_password
+        puts ColorizedString["Incorrect username and/or password!"].red
+        self.login
     end
 
     def update_name 
