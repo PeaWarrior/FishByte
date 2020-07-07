@@ -3,10 +3,17 @@ Location.destroy_all
 Event.destroy_all
 Participant.destroy_all
 
+10.times do
+    User.create(name: Faker::Name.name, dob: Faker::Date.birthday, username: Faker::Internet.user_name, password: Faker::Internet.password)
+end
+
 u1 = User.create(name:"Jack", username:"jacksback",password: "123")
 u2 = User.create(name:"Chris", username:"Fisherman",password: "Bass")
 u3 = User.create(name:"Dereck", username:"FishDad",password: "2manyfish")
 
+10.times do
+    Event.create(name: Faker::Esport.event)
+end
 
 e1 = Event.create(name:"Fishing Competition",user_id: u3.id, location_id: 1, date: Time.new(2020,7,4,2), price: 5)
 e2 = Event.create(name: "Fishing 6ft Apart",user_id: u2.id, location_id: 2, date: Time.new(2020,8,4,9), price: 5)

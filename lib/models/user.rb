@@ -58,6 +58,7 @@ class User < ActiveRecord::Base
             print "\r" + ("\e[A\e[K"*3)
             self.register_username
         end
+        username
     end
 
     def self.register_password
