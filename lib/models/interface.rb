@@ -2,7 +2,7 @@ class Interface
     attr_accessor :prompt, :user
 
     def initialize 
-        @prompt = TTY::Prompt.new(active_color: :cyan)
+        @prompt = TTY::Prompt.new(active_color: :cyan, symbols: {marker: '🐟'})
     end
 
     def welcome
@@ -17,7 +17,6 @@ class Interface
         puts ColorizedString["          /`·.¸               `´´'¸.·´       : © ):´;      ¸  {      " ].light_white.on_cyan.blink
         puts ColorizedString["         /¸...¸`:·                            `·.¸ `·  ¸.·´ `·¸)     " ].light_white.on_cyan.blink
         puts ColorizedString["     ¸.·´  ¸   `·.¸.·´)                           `´´'¸.·´           " ].light_white.on_cyan.blink
-        
     end
 
     def login_or_register
@@ -46,9 +45,23 @@ class Interface
         interface.user = user_instance
         interface.main_menu
     end
+    
+    def my_events
+        system 'clear'
+        if user.events.reload == [] && user.participants.reload == []
+            no_events
+        else
+            selected_event_id = prompt.select("Check event", all_events)
 
-    def event_formatted(event)
-        {name: "  #{event.name.colorize(:light_yellow)} at #{event.location.name.colorize(:light_yellow)}\n    #{event.location.fish_species.colorize(:light_green)}\n    #{event.date.strftime("%b %d %Y")}  Attending: #{event.participants.count}  Acres: #{event.location.acres_mile}\n   #{event.date.strftime(" %a %I:%M%P")}  Price: $#{event.price}  By: #{event.user.name}   \n", value: event.id}
+            if Event.find_by(id: selected_event_id).user_id == user.id
+                event = Event.find_by(id: selected_event_id)
+                event_menu(event)
+            else 
+                participant_actions(user.id, selected_event_id)
+            end
+            sleep(1)
+            main_menu
+        end
     end
 
     def no_events
@@ -56,37 +69,21 @@ class Interface
         sleep(1)
         main_menu
     end
-
-    def show_all_my_events
+    
+    def all_events
         user.participants.reload.map do |participant|
             event_formatted(participant.event)
         end
     end
     
-    def my_events
-        system 'clear'
-        if user.events.reload == [] && user.participants.reload == []
-            no_events
-        else
-            selected_event_id = prompt.select("Check event", show_all_my_events)
-
-            if Event.find_by(id: selected_event_id).user_id == user.id
-                event = Event.find_by(id: selected_event_id)
-                event_menu(event)
-            else 
-                if participant_actions == "Cancel Attendance"
-                    Participant.cancel_attendance(user.id, selected_event_id)
-                end
-            end
-            sleep(1)
-            main_menu
-        end
+    def event_formatted(event)
+        {name: "  #{event.name.colorize(:light_yellow)} at #{event.location.name.colorize(:light_yellow)}\n    #{event.location.fish_species.colorize(:light_green)}\n    #{event.date.strftime("%b %d %Y")}  Attending: #{event.participants.count}  Acres: #{event.location.acres_mile}\n   #{event.date.strftime(" %a %I:%M%P")}  Price: $#{event.price}  By: #{event.user.name}   \n", value: event.id}
     end
-
-    def participant_actions
+    
+    def participant_actions(user_id, selected_event_id)
         prompt.select("Cancel attendance?") do |menu|
-            menu.choice "Cancel Attendance"
-            menu.choice "Main Menu"
+            menu.choice "Cancel Attendance", -> {Participant.cancel_attendance(user_id, selected_event_id)}
+            menu.choice "Main Menu", -> {main_menu}
         end
     end
 
