@@ -38,16 +38,7 @@ class User < ActiveRecord::Base
       
     end
 
-    def update_age
-        prompt = TTY::Prompt.new
-        age_update = prompt.ask("DOB MM/DD/YYY:")
-        birthday = Date.new(age_update)
-        ac = AgeCalculator.new(birthday)
-        binding.pry
-        self.update(age: ac)
-        puts ColorizedString["Age has been updated to #{age_update}!"].green
-        
-    end
+
 
     def change_password
         prompt = TTY::Prompt.new
@@ -83,8 +74,8 @@ class User < ActiveRecord::Base
                end
                 }
                 menu.choice "No" 
-
             end
+    end
             
 end
 
