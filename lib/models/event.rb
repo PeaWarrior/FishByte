@@ -82,7 +82,7 @@ class Event < ActiveRecord::Base
     end
 
     def show_participants
-        self.prompt.select("Participants:", Participant.participant_names(self), per_page: 5)
+        self.class.prompt.select("Participants:", Participant.participant_names(self), per_page: 5)
     end
 
 end
