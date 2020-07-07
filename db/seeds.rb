@@ -10,7 +10,7 @@ u3 = User.create(name:"Dereck", username:"FishDad",password: "2manyfish")
 
 e1 = Event.create(name:"Fishing Competition",user_id: u3.id, location_id: 1, date: Time.new(2020,7,4,2), price: 5)
 e2 = Event.create(name: "Fishing 6ft Apart",user_id: u2.id, location_id: 2, date: Time.new(2020,8,4,9), price: 5)
-e3 = Event.create(name:"Father's day Fishing",user_id: u1.id, location_id: 0, date: Time.new(2020,9,4,6), price: 5)
+e3 = Event.create(name:"Father's day Fishing",user_id: u1.id, location_id: 4, date: Time.new(2020,9,4,6), price: 5)
 e4 = Event.create(name:"Fish and Fashion",user_id: u1.id, location_id: 3, date: Time.new(2020,10,5,6), price: 10)
 
 Participant.create(event_id: e1.id, user_id: u3.id)

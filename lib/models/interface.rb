@@ -2,7 +2,7 @@ class Interface
     attr_accessor :prompt, :user
 
     def initialize 
-        @prompt = TTY::Prompt.new
+        @prompt = TTY::Prompt.new(active_color: :cyan)
     end
 
     def welcome
@@ -48,7 +48,7 @@ class Interface
     end
 
     def event_formatted(event)
-        {name: "  #{event.name.colorize(:light_blue)} at #{event.location.name.colorize(:light_blue)}\n    #{"by #{event.user.name}".colorize(:light_black)}\n    #{event.date.strftime("%b %d %Y")}  Attending: #{event.participants.count}\n   #{event.date.strftime(" %a %I:%M%P")}  Price: $#{event.price}\n", value: event.id}
+        {name: "  #{event.name.colorize(:light_yellow)} at #{event.location.name.colorize(:light_yellow)}\n    #{event.location.fish_species.colorize(:light_green)}\n    #{event.date.strftime("%b %d %Y")}  Attending: #{event.participants.count}  Acres: #{event.location.acres_mile}\n   #{event.date.strftime(" %a %I:%M%P")}  Price: $#{event.price}  By: #{event.user.name}   \n", value: event.id}
     end
 
     def no_events
@@ -68,7 +68,7 @@ class Interface
         if user.events.reload == [] && user.participants.reload == []
             no_events
         else
-            selected_event_id = prompt.select("Check event", show_all_my_events, per_page: 5)
+            selected_event_id = prompt.select("Check event", show_all_my_events)
 
             if Event.find_by(id: selected_event_id).user_id == user.id
                 event = Event.find_by(id: selected_event_id)
@@ -147,8 +147,8 @@ class Interface
         # binding.pry
         final_date = add.to_datetime
 
-        location_result = prompt.select("Please choose a location", Location.names)
-        location_instance = Location.find_by(name: location_result)
+        location_result = prompt.select("Please choose a location", Location.location_details)
+        location_instance = Location.find_by(id: location_result)
 
         #### resul[:time] string to integer add to datetime 
         hour = result[:time].split(":")[0].to_i
