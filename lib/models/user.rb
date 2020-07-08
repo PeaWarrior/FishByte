@@ -93,15 +93,15 @@ class User < ActiveRecord::Base
     end
 
     def update_name 
-        name_update = self.prompt.ask(" New name:")
+        name_update = self.class.prompt.ask(" New name:")
         self.update(name: name_update)
         puts ColorizedString["Name has been updated to #{name_update}!"].green
     end
 
     def change_password
-        current_pswd = self.prompt.mask("What is your current password?")
-        new_pswd = prompt.mask("What is your new password?")
-        confirm_new_pswd = prompt.mask("Please confirm new password")
+        current_pswd = self.class.prompt.mask("What is your current password?")
+        new_pswd = self.class.prompt.mask("What is your new password?")
+        confirm_new_pswd = self.class.prompt.mask("Please confirm new password")
         if current_pswd == self.password && new_pswd == confirm_new_pswd
             self.update(password: new_pswd)
             puts ColorizedString["Your password has been updated!"].green 
@@ -112,17 +112,19 @@ class User < ActiveRecord::Base
     end
 
      def delete_account
-        self.prompt.warn("WARNING: Action can not be undone.")
-        choice = prompt.select("Are you sure you want to delete this account") do |menu|
+        self.class.prompt.warn("WARNING: Action can not be undone.")
+        choice = self.class.prompt.select("Are you sure you want to delete this account") do |menu|
             menu.choice "Yes", -> {
-                pswd = prompt.mask("What is your password?")
+                pswd = self.class.prompt.mask("What is your password?")
                 if pswd == self.password
+                    Participant.destroy_all_participants(self.id)
+                    Event.erase_event(self.id)
                     self.destroy
                     new_inter = Interface.new
                     puts ColorizedString["ACCOUNT DESTROYED"].red 
                     sleep(3)
                     new_inter.welcome
-                    new_inter.login_or_register
+                   new_inter.user = new_inter.login_or_register
                 else
                     puts ColorizedString["Incorrect password"].red 
                 end
@@ -130,6 +132,6 @@ class User < ActiveRecord::Base
                 menu.choice "No" 
             end
     end
-            
+     
 end
 

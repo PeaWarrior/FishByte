@@ -3,32 +3,20 @@ Location.destroy_all
 Event.destroy_all
 Participant.destroy_all
 
+
+10.times do
+    User.create(name: Faker::TvShows::TheFreshPrinceOfBelAir.unique.character, dob: Faker::Date.birthday, username: Faker::Internet.user_name, password: Faker::Internet.password)
+end 
 10.times do
     User.create(name: Faker::Name.name, dob: Faker::Date.birthday, username: Faker::Internet.user_name, password: Faker::Internet.password)
 end
 
-u1 = User.create(name:"Jack", username:"jacksback",password: "123")
-u2 = User.create(name:"Chris", username:"Fisherman",password: "Bass")
-u3 = User.create(name:"Dereck", username:"FishDad",password: "2manyfish")
+LakeData.get_data.each{|lake| Location.create(lake)}
 
 10.times do
-    Event.create(name: Faker::Esport.event)
+    Event.create(name: Faker::Space.unique.nasa_space_craft+' Fishing',price: rand(300), user_id: rand(1..20), date:Faker::Date.forward(days = 365), location_id: rand(1..12))
 end
 
-e1 = Event.create(name:"Fishing Competition",user_id: u3.id, location_id: 1, date: Time.new(2020,7,4,2), price: 5)
-e2 = Event.create(name: "Fishing 6ft Apart",user_id: u2.id, location_id: 2, date: Time.new(2020,8,4,9), price: 5)
-e3 = Event.create(name:"Father's day Fishing",user_id: u1.id, location_id: 4, date: Time.new(2020,9,4,6), price: 5)
-e4 = Event.create(name:"Fish and Fashion",user_id: u1.id, location_id: 3, date: Time.new(2020,10,5,6), price: 10)
-
-Participant.create(event_id: e1.id, user_id: u3.id)
-Participant.create(event_id: e2.id, user_id: u2.id)
-Participant.create(event_id: e3.id, user_id: u1.id)
-Participant.create(event_id: e4.id, user_id: u1.id)
-Participant.create(event_id: e1.id, user_id: u1.id)
-Participant.create(event_id: e1.id, user_id: u2.id)
-Participant.create(event_id: e2.id, user_id: u1.id)
-Participant.create(event_id: e4.id, user_id: u2.id)
-Participant.create(event_id: e4.id, user_id: u3.id)
-
-# Location.create(LakeData.get_data)
-LakeData.get_data.each{|lake| Location.create(lake)}
+50.times do 
+Participant.create(event_id: rand(1..10), user_id: rand(1..20))
+end

@@ -108,7 +108,7 @@ class Interface
         if Event.upcoming_events(user).count > 0
             event_ids = prompt.multi_select("Sign up for event(s)", Event.upcoming_events(user), per_page: 4, echo:false)
             sign_up_to_event(event_ids)
-        else puts "There are no new events near you!".colorize(:red)
+        else puts "There are no new events!".colorize(:red)
         end
         sleep(2)
         main_menu
@@ -141,7 +141,6 @@ class Interface
         #convert time to string, reorganize the structure, convert to datetime
         split_date = result[:date].split("/")     
         add = split_date[2] + split_date[0] + split_date[1]
-        # binding.pry
         final_date = add.to_datetime
 
         location_result = prompt.select("Please choose a location", Location.location_details)

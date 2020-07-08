@@ -9,8 +9,9 @@ class Event < ActiveRecord::Base
         @@prompt
     end
 
-    def self.upcoming_events(user)
-        self.unregistered_events(user).map do |event|
+    def self.upcoming_events(user_instance)
+        self.unregistered_events(user_instance).map do |event|
+
             {name: "#{event.name.colorize(:light_blue)} at #{event.location.name.colorize(:light_blue)}\n    #{"by #{event.user.name}".colorize(:light_black)}\n    #{event.date.strftime("%b %d %Y")}  Attending: #{event.participants.count}\n   #{event.date.strftime(" %a %I:%M%P")}  Price: $#{event.price}\n", value: event.id}
         end
     end
@@ -85,4 +86,8 @@ class Event < ActiveRecord::Base
         self.class.prompt.select("Participants:", Participant.participant_names(self), per_page: 10)
     end
 
+    def self.erase_event(user)
+        self.where(user_id = user.id).each do |event| Event.destroy_event(event.id)
+        end
+    end
 end
