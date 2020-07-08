@@ -3,18 +3,19 @@ class User < ActiveRecord::Base
     has_many :locations, through: :events
     has_many :participants
 
-    @@prompt = TTY::Prompt.new(active_color: :cyan)
+    @@prompt = TTY::Prompt.new(active_color: :cyan, symbols: {marker: '🐟'})
 
     def self.prompt
         @@prompt
     end
     
     def self.register
-        name = self.register_name
-        dob = self.register_dob
-        username = self.register_username
-        password = self.register_password
-        self.successful_registration(username, name, dob, password)
+        # name = self.register_name
+        # dob = self.register_dob
+        # username = self.register_username
+        # password = self.register_password
+        # self.successful_registration(username, name, dob, password)
+        User.create(name: self.register_name, dob: self.register_dob, username: self.register_username, password: self.register_password)
     end
 
     def self.register_name
@@ -57,8 +58,9 @@ class User < ActiveRecord::Base
             sleep(2)
             print "\r" + ("\e[A\e[K"*3)
             self.register_username
+        else
+            username
         end
-        username
     end
 
     def self.register_password
@@ -81,9 +83,9 @@ class User < ActiveRecord::Base
     end
 
     def self.login
-        username = self.prompt.ask("What is your username?")
-        pswd = prompt.mask("What is your password?")
-        found_user = User.find_by(username: username, password:pswd)
+        username = self.prompt.ask("Username login:")
+        password = prompt.mask("Password login:")
+        found_user = User.find_by(username: username, password:password)
         found_user ? found_user : self.incorrect_username_or_password
     end
 
@@ -106,25 +108,25 @@ class User < ActiveRecord::Base
             self.update(password: new_pswd)
             puts ColorizedString["Your password has been updated!"].green 
          else
-            puts ColorizedString["Incorrect password  or new password does not match!"].red 
+            puts ColorizedString["Incorrect password or new password does not match!"].red 
         end 
     
     end
 
      def delete_account
         self.class.prompt.warn("WARNING: Action can not be undone.")
-        choice = self.class.prompt.select("Are you sure you want to delete this account") do |menu|
+        self.class.prompt.select("Are you sure you want to delete this account") do |menu|
             menu.choice "Yes", -> {
                 pswd = self.class.prompt.mask("What is your password?")
                 if pswd == self.password
-                    Participant.destroy_all_participants(self.id)
-                    Event.erase_event(self.id)
+                    Participant.destroy_participants_by_user(self)
+                    Event.destroy_events_by_user(self)
                     self.destroy
                     new_inter = Interface.new
                     puts ColorizedString["ACCOUNT DESTROYED"].red 
                     sleep(3)
                     new_inter.welcome
-                   new_inter.user = new_inter.login_or_register
+                    new_inter.user = new_inter.login_or_register
                 else
                     puts ColorizedString["Incorrect password"].red 
                 end

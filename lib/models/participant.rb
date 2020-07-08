@@ -2,8 +2,14 @@ class Participant < ActiveRecord::Base
     belongs_to :event
     belongs_to :user
 
-    def self.destroy_all_participants(selected_event_id)
-        self.where(event_id: selected_event_id).find_each do |participant|
+    def self.destroy_participants_by_user(user)
+        self.where(user_id: user.id).find_each do |participant|
+            participant.destroy
+        end
+    end
+
+    def self.destroy_participants_by_event(event)
+        self.where(event_id: event.id).find_each do |participant|
             participant.destroy
         end
     end

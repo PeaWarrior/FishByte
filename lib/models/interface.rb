@@ -28,7 +28,7 @@ class Interface
 
     def main_menu
         system 'clear'
-        puts "Welcome #{user.username}!"
+        puts "#{user.username}          #{"FishByte".colorize(:light_cyan)}\n\n"
         choice = prompt.select("Main Menu") do |menu| 
             menu.choice "My Events", -> {my_events}
             menu.choice "Create an Event", -> {create_event}
@@ -48,10 +48,11 @@ class Interface
     
     def my_events
         system 'clear'
+        puts "#{user.username}          #{"FishByte".colorize(:light_cyan)}"
         if user.events.reload == [] && user.participants.reload == []
             no_events
         else
-            selected_event_id = prompt.select("Check event", all_events)
+            selected_event_id = prompt.select("Check event", all_events, per_page: 4)
 
             if Event.find_by(id: selected_event_id).user_id == user.id
                 event = Event.find_by(id: selected_event_id)
@@ -65,12 +66,16 @@ class Interface
     end
 
     def no_events
+        system 'clear'
+        puts "#{user.username}          #{"FishByte".colorize(:light_cyan)}"
         puts "You have no events!".colorize(:red)
         sleep(1)
         main_menu
     end
     
     def all_events
+        system 'clear'
+        puts "#{user.username}          #{"FishByte".colorize(:light_cyan)}"
         user.participants.reload.map do |participant|
             event_formatted(participant.event)
         end
@@ -88,6 +93,8 @@ class Interface
     end
 
     def event_menu(event)
+        system 'clear'
+        puts "#{user.username}          #{"FishByte".colorize(:light_cyan)}"
         prompt.select("Event Menu") do |menu|
             menu.choice "Show Participants", -> {event.show_participants}
             menu.choice "Update Event", -> {update_event(event)}
@@ -99,12 +106,14 @@ class Interface
     def update_event(event)
         choice = prompt.select("What do you want to update?") do |menu|
             menu.choice "Event Name", -> {event.update_event_name}
-            menu.choice "Event Date", -> {event.update_date}
+            menu.choice "Event Date", -> {event.update_date_and_time}
             menu.choice "Event Price", -> {event.update_price}
         end
     end
 
     def find_upcoming_events
+        system 'clear'
+        puts "#{user.username}          #{"FishByte".colorize(:light_cyan)}"
         if Event.upcoming_events(user).count > 0
             event_ids = prompt.multi_select("Sign up for event(s)", Event.upcoming_events(user), per_page: 4, echo:false)
             sign_up_to_event(event_ids)
@@ -115,9 +124,13 @@ class Interface
     end
 
     def sign_up_message(event_ids)
-        puts "You have successfully signed up for: "
-        event_ids.each do |event_id|
-            puts "#{Event.find(event_id).name.colorize(:light_blue)}"
+        if event_ids.count > 0
+            puts "You have successfully signed up for: "
+            event_ids.each do |event_id|
+                puts "#{Event.find(event_id).name.colorize(:cyan)}"
+            end
+        else 
+            puts "You did not sign up to any events."
         end
     end
 
@@ -130,14 +143,14 @@ class Interface
     end
 
     def create_event
-           result = prompt.collect do
+        system 'clear'
+        puts "#{user.username}          #{"FishByte".colorize(:light_cyan)}"
+        result = prompt.collect do
             key(:name).ask('Event Name:')
-            key(:date).ask('Date: "MM/DD/YYYY":', convert: :string)
-            key(:time).ask('Time of Event "HH:MM":',convert: :string)
-            # binding.pry
+            key(:date).ask("Date: #{"Please enter date in displayed format MM/DD/YYYY".colorize(:light_black)}", convert: :string)
+            key(:time).ask("Time of Event: #{"Please enter time in displayed format HH:MM".colorize(:light_black)}", convert: :string)
             key(:price).ask('Price: $', convert: :int)
         end
-        # binding.pry
         #convert time to string, reorganize the structure, convert to datetime
         split_date = result[:date].split("/")     
         add = split_date[2] + split_date[0] + split_date[1]
@@ -155,15 +168,18 @@ class Interface
         e1 = Event.create(name: result[:name], date: event_datetime, price: result[:price],user_id: user.id, location_id: location_instance.id)
         Participant.create(event_id: e1.id, user_id: user.id)
         # Event.participatns should = 1
-        puts "NEW EVENT COMPLETED! Have fun at #{result[:name]}!".colorize(:green)
-        sleep(3)
+        system 'clear'
+        puts "#{"New event successfully created!".colorize(:light_yellow)}\n  #{e1.event_info[:name]}"
+        prompt.select("") {|menu| menu.choice "Continue"}
         main_menu
     end
 
     def settings
-       var = prompt.select("What would you like to update?") do |menu|
-            menu.choice "Name", -> {user.update_name}
-            menu.choice "Password", -> {user.change_password}
+        system 'clear'
+        puts "#{user.username}          #{"FishByte".colorize(:light_cyan)}"
+        var = prompt.select("Settings Menu:") do |menu|
+            menu.choice "Update Name", -> {user.update_name}
+            menu.choice "Change Password", -> {user.change_password}
             menu.choice "Delete Account", -> {user.delete_account}
             menu.choice "Main Menu", -> {main_menu}
         end

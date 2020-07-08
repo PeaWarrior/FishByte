@@ -3,7 +3,7 @@ class Event < ActiveRecord::Base
     belongs_to :location
     has_many :participants
 
-    @@prompt = TTY::Prompt.new(active_color: :cyan)
+    @@prompt = TTY::Prompt.new(active_color: :cyan, symbols: {marker: '🐟'}, quiet: false)
 
     def self.prompt
         @@prompt
@@ -11,7 +11,6 @@ class Event < ActiveRecord::Base
 
     def self.upcoming_events(user_instance)
         self.unregistered_events(user_instance).map do |event|
-
             {name: "#{event.name.colorize(:light_blue)} at #{event.location.name.colorize(:light_blue)}\n    #{"by #{event.user.name}".colorize(:light_black)}\n    #{event.date.strftime("%b %d %Y")}  Attending: #{event.participants.count}\n   #{event.date.strftime(" %a %I:%M%P")}  Price: $#{event.price}\n", value: event.id}
         end
     end
@@ -22,72 +21,93 @@ class Event < ActiveRecord::Base
         end
     end
 
-    def self.destroy_event(selected_event_id)
-        Event.find(selected_event_id).delete
-        puts "Event canceled!".colorize(:red)
+    def self.destroy_event(event)
+        Event.find(event.id).delete
     end
 
-    # Update event methods
+    # UPDATE EVENT METHODS START
+
     def update_event_name
         new_name = self.class.prompt.ask("New event name:")
         self.update(name: new_name)
     end
 
-    def proposed_time(ask_date, new_time)
-        Time.new(ask_date[0], ask_date[1], ask_date[2], new_time[0], new_time[1]).strftime("%B %d, %Y %A %I:%M %p")
+    def update_date_and_time
+        self.update(date: "#{get_new_date} #{get_new_time}".to_datetime)
+        puts "Updated #{self.name.colorize(:cyan)} date & time to #{self.date}!"
+        sleep(2)
     end
 
-    def invalid_date
-        puts "Please enter a valid date."
-        sleep(1)
-        self.update_date
+    def get_new_date
+        new_date = self.class.prompt.ask("Please enter a new date: #{"Please enter new date in the following format: MM/DD/YYYY".colorize(:light_black)}") do |answer|
+            answer.validate /[0-1][0-9]\/[0-3][0-9]\/[0-9]{4}/
+            answer.messages[:valid?] = "Invalid date"
+        end
+        self.valid_new_date?(new_date)
     end
 
-    def ask_date
-        self.class.prompt.ask("Please enter a new date: YYYY/MM/DD") do |answer|
-            answer.validate /[0-9]{4}\/[0-1][0-9]\/[0-3][0-9]/
-        end.split("/")
-    end
-    
-    def ask_time
-        time = self.class.prompt.ask("Please enter new time in this format, HH:MM") do |answer|
-            answer.validate /[0-2][0-9]\:[0-5][0-9]/
-        end.split(":").map do |set|
-            set.to_i
+    def valid_new_date?(new_date)
+        new_date_array = new_date.split("/").map {|element| element.to_i}
+        if Date.valid_date?(new_date_array[2], new_date_array[0], new_date_array[1])
+            if new_date.to_datetime > Time.new
+                new_date
+            else
+                puts "Date entered is a past date, please enter a valid date".colorize(:red)
+                self.get_new_date
+            end
+        else
+            puts "Please enter a valid date".colorize(:red)
         end
     end
 
-    def update_date
-        new_time = proposed_time(ask_date, ask_time)
-        new_time > Time.now ? self.update(date: new_time) : invalid_date
-        puts "Event updated! #{self.date}"
-        sleep (2)
+    def get_new_time
+        self.class.prompt.ask("Please enter a new time: #{"Please enter a new time in the following format: HH:MM am/pm".colorize(:light_black)}") do |answer|
+            answer.validate /[0-2][0-9]\:[0-5][0-9]/
+            answer.messages[:valid?] = "Invalid time"
+        end
     end
 
     def update_price
         new_price = self.class.prompt.ask("New price:") do |answer|
             answer.validate /[0-9]+$/
+            answer.messages[:valid?] = 'Enter a valid price'
         end
         self.date > Time.now + 604800 ? self.update(price: new_price.to_i) : (puts "Unable to edit price 7 days before event.".colorize(:red))
     end
 
+    def event_info
+        {name: "  #{self.name.colorize(:light_yellow)} at #{self.location.name.colorize(:light_yellow)}\n    #{self.location.fish_species.colorize(:light_green)}\n    #{self.date.strftime("%b %d %Y")}  Attending: #{self.participants.count}  Acres: #{self.location.acres_mile}\n   #{self.date.strftime(" %a %I:%M%P")}  Price: $#{self.price}  By: #{self.user.name}   \n", value: self.id}
+    end
+
+    def update_location
+        new_location = self.class.prompt.select("Select a new location for:\n  #{self.event_info[:name]}", Location.location_details)
+        self.update(location: new_location.id)
+    end
+
+    # UPDATE EVENT METHODS END
+
     def cancel_event?
-        self.class.prompt.warn("WARNING: Action can not be undone.")
-        choice = self.class.prompt.select("Are you sure you want to cancel this event?") do |menu|
-            menu.choice "Yes", -> {
-                Participant.destroy_all_participants(self.id)
-                Event.destroy_event(self.id)
-                }
+        puts "WARNING: Action can not be undone.".colorize(:yellow)
+        self.class.prompt.select("Are you sure you want to cancel this event?") do |menu|
+            menu.choice "Yes", -> {cancel_event_confirmed}
             menu.choice "No"
         end
+    end
+
+    def cancel_event_confirmed
+        Participant.destroy_participants_by_event(self)
+        Event.destroy_event(self)
+        puts "Event canceled!".colorize(:red)
     end
 
     def show_participants
         self.class.prompt.select("Participants:", Participant.participant_names(self), per_page: 10)
     end
 
-    def self.erase_event(user)
-        self.where(user_id = user.id).each do |event| Event.destroy_event(event.id)
+    def self.destroy_events_by_user(user)
+        self.where(user_id: user.id).each do |event| 
+            Event.destroy_event(event)
         end
     end
+
 end
