@@ -9,12 +9,26 @@ class User < ActiveRecord::Base
         @@prompt
     end
     
+    def self.to_main_menu
+        self.prompt.on(:keyescape) do
+            interface = Interface.new()
+            interface.user = self
+            interface.main_menu
+        end
+    end
+    
+    def self.to_register_or_login_screen
+        self.prompt.on(:keyescape) do |event|
+            interface = Interface.new()
+            interface.welcome
+            user_instance = interface.login_or_register
+            interface.user = user_instance
+            interface.main_menu
+        end
+    end
+
     def self.register
-        # name = self.register_name
-        # dob = self.register_dob
-        # username = self.register_username
-        # password = self.register_password
-        # self.successful_registration(username, name, dob, password)
+        self.to_register_or_login_screen
         User.create(name: self.register_name, dob: self.register_dob, username: self.register_username, password: self.register_password)
     end
 
@@ -94,7 +108,8 @@ class User < ActiveRecord::Base
         self.login
     end
 
-    def update_name 
+    def update_name
+        self.class.to_main_menu
         name_update = self.class.prompt.ask(" New name:")
         self.update(name: name_update)
         puts ColorizedString["Name has been updated to #{name_update}!"].green
@@ -114,6 +129,7 @@ class User < ActiveRecord::Base
     end
 
      def delete_account
+        to_main_menu
         self.class.prompt.warn("WARNING: Action can not be undone.")
         self.class.prompt.select("Are you sure you want to delete this account") do |menu|
             menu.choice "Yes", -> {

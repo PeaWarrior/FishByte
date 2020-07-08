@@ -26,9 +26,16 @@ class Interface
         end
     end
 
+    def to_main_menu
+        prompt.on(:keyescape) do |event|
+            main_menu
+        end
+    end
+
     def main_menu
         system 'clear'
         puts "#{user.username}          #{"FishByte".colorize(:light_cyan)}\n\n"
+        to_main_menu
         choice = prompt.select("Main Menu") do |menu| 
             menu.choice "My Events", -> {my_events}
             menu.choice "Create an Event", -> {create_event}
@@ -82,7 +89,7 @@ class Interface
     end
     
     def event_formatted(event)
-        {name: "  #{event.name.colorize(:light_yellow)} at #{event.location.name.colorize(:light_yellow)}\n    #{event.location.fish_species.colorize(:light_green)}\n    #{event.date.strftime("%b %d %Y")}  Attending: #{event.participants.count}  Acres: #{event.location.acres_mile}\n   #{event.date.strftime(" %a %I:%M%P")}  Price: $#{event.price}  By: #{event.user.name}   \n", value: event.id}
+        {name: "   #{event.name.colorize(:light_yellow)} at #{event.location.name}, #{event.location.county}\n     #{event.location.fish_species.split(" - ").join(", ").colorize(:light_blue)}\n     #{"by #{event.user.name}".colorize(:light_black)}\n     #{event.date.strftime("%b %d %Y")}  Attending: #{event.participants.count}  Size: #{event.location.acres_mile} acres\n    #{event.date.strftime(" %a %I:%M%P")}  Price: $#{event.price}\n", value: event.id}
     end
     
     def participant_actions(user_id, selected_event_id)
@@ -177,7 +184,7 @@ class Interface
     def settings
         system 'clear'
         puts "#{user.username}          #{"FishByte".colorize(:light_cyan)}"
-        var = prompt.select("Settings Menu:") do |menu|
+        prompt.select("Settings Menu:") do |menu|
             menu.choice "Update Name", -> {user.update_name}
             menu.choice "Change Password", -> {user.change_password}
             menu.choice "Delete Account", -> {user.delete_account}
