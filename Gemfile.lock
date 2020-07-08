@@ -92,7 +92,9 @@ DEPENDENCIES
   rest-client
   sinatra-activerecord
   sqlite3 (~> 1.3.6)
+  tty-cursor
   tty-prompt
+  tty-screen
 
 BUNDLED WITH
    2.1.4

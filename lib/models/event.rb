@@ -3,7 +3,7 @@ class Event < ActiveRecord::Base
     belongs_to :location
     has_many :participants
 
-    @@prompt = TTY::Prompt.new(active_color: :cyan, symbols: {marker: '🐟'}, quiet: false)
+    @@prompt = TTY::Prompt.new(active_color: :cyan, symbols: {marker: '🐟', radio_on: '🎣', radio_off: ' '}, quiet: false)
 
     def self.prompt
         @@prompt

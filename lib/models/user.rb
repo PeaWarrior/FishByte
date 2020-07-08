@@ -3,18 +3,10 @@ class User < ActiveRecord::Base
     has_many :locations, through: :events
     has_many :participants
 
-    @@prompt = TTY::Prompt.new(active_color: :cyan, symbols: {marker: '🐟'})
+    @@prompt = TTY::Prompt.new(active_color: :cyan, symbols: {marker: '🐟', radio_on: '🎣', radio_off: ' '})
 
     def self.prompt
         @@prompt
-    end
-    
-    def self.to_main_menu
-        self.prompt.on(:keyescape) do
-            interface = Interface.new()
-            interface.user = self
-            interface.main_menu
-        end
     end
     
     def self.to_register_or_login_screen
@@ -109,7 +101,6 @@ class User < ActiveRecord::Base
     end
 
     def update_name
-        self.class.to_main_menu
         name_update = self.class.prompt.ask(" New name:")
         self.update(name: name_update)
         puts ColorizedString["Name has been updated to #{name_update}!"].green
@@ -129,7 +120,6 @@ class User < ActiveRecord::Base
     end
 
      def delete_account
-        to_main_menu
         self.class.prompt.warn("WARNING: Action can not be undone.")
         self.class.prompt.select("Are you sure you want to delete this account") do |menu|
             menu.choice "Yes", -> {

@@ -2,7 +2,7 @@ class Interface
     attr_accessor :prompt, :user
 
     def initialize 
-        @prompt = TTY::Prompt.new(active_color: :cyan, symbols: {marker: '🐟'})
+        @prompt = TTY::Prompt.new(active_color: :cyan, symbols: {marker: '🐟', radio_on: '🎣', radio_off: ' '})
     end
 
     def welcome
@@ -26,16 +26,9 @@ class Interface
         end
     end
 
-    def to_main_menu
-        prompt.on(:keyescape) do |event|
-            main_menu
-        end
-    end
-
     def main_menu
         system 'clear'
         puts "#{user.username}          #{"FishByte".colorize(:light_cyan)}\n\n"
-        to_main_menu
         choice = prompt.select("Main Menu") do |menu| 
             menu.choice "My Events", -> {my_events}
             menu.choice "Create an Event", -> {create_event}
