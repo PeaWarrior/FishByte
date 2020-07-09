@@ -3,18 +3,24 @@ class User < ActiveRecord::Base
     has_many :locations, through: :events
     has_many :participants
 
-    @@prompt = TTY::Prompt.new(active_color: :cyan, symbols: {marker: '🐟'})
+    @@prompt = TTY::Prompt.new(active_color: :cyan, symbols: {marker: '🐟', radio_on: '🎣', radio_off: ' '})
 
     def self.prompt
         @@prompt
     end
     
+    def self.to_register_or_login_screen
+        self.prompt.on(:keyescape) do |event|
+            interface = Interface.new()
+            interface.welcome
+            user_instance = interface.login_or_register
+            interface.user = user_instance
+            interface.main_menu
+        end
+    end
+
     def self.register
-        # name = self.register_name
-        # dob = self.register_dob
-        # username = self.register_username
-        # password = self.register_password
-        # self.successful_registration(username, name, dob, password)
+        self.to_register_or_login_screen
         User.create(name: self.register_name, dob: self.register_dob, username: self.register_username, password: self.register_password)
     end
 
@@ -94,7 +100,7 @@ class User < ActiveRecord::Base
         self.login
     end
 
-    def update_name 
+    def update_name
         name_update = self.class.prompt.ask(" New name:")
         self.update(name: name_update)
         puts ColorizedString["Name has been updated to #{name_update}!"].green

@@ -12,3 +12,5 @@ gem 'tty-prompt'
 gem "colorize"
 gem "age_calculator"
 gem "rest-client"
+gem 'tty-screen'
+gem 'tty-cursor'

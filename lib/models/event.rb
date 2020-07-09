@@ -3,20 +3,24 @@ class Event < ActiveRecord::Base
     belongs_to :location
     has_many :participants
 
-    @@prompt = TTY::Prompt.new(active_color: :cyan, symbols: {marker: '🐟'}, quiet: false)
+    @@prompt = TTY::Prompt.new(active_color: :cyan, symbols: {marker: '🐟', radio_on: '🎣', radio_off: ' '}, quiet: false)
 
     def self.prompt
         @@prompt
     end
 
+    def self.event_view_format(event)
+        {name: "#{event.name.colorize(:light_yellow)} at #{event.location.name}, #{event.location.county}\n     #{event.location.fish_species.split(" - ").join(", ").colorize(:light_blue)}\n     #{"by #{event.user.name}".colorize(:light_black)}\n     #{event.date.strftime("%b %d %Y")}  Attending: #{event.participants.count}  Size: #{event.location.acres_mile} acres\n    #{event.date.strftime(" %a %I:%M%P")}  Price: $#{event.price}\n", value: event.id}
+    end
+
     def self.upcoming_events(user_instance)
         self.unregistered_events(user_instance).map do |event|
-            {name: "#{event.name.colorize(:light_blue)} at #{event.location.name.colorize(:light_blue)}\n    #{"by #{event.user.name}".colorize(:light_black)}\n    #{event.date.strftime("%b %d %Y")}  Attending: #{event.participants.count}\n   #{event.date.strftime(" %a %I:%M%P")}  Price: $#{event.price}\n", value: event.id}
+            self.event_view_format(event)
         end
     end
 
     def self.unregistered_events(user)
-        self.all.select do |event|
+        self.order(:date).select do |event|
             !Participant.find_by(event_id: event.id, user_id: user.id)
         end
     end
@@ -39,7 +43,7 @@ class Event < ActiveRecord::Base
     end
 
     def get_new_date
-        new_date = self.class.prompt.ask("Please enter a new date: #{"Please enter new date in the following format: MM/DD/YYYY".colorize(:light_black)}") do |answer|
+        new_date = self.class.prompt.ask("Please enter a date: #{"Please enter date in the following format: MM/DD/YYYY".colorize(:light_black)}") do |answer|
             answer.validate /[0-1][0-9]\/[0-3][0-9]\/[0-9]{4}/
             answer.messages[:valid?] = "Invalid date"
         end
