@@ -151,26 +151,29 @@ class Interface
             key(:time).ask("Time of Event: #{"Please enter time in displayed format HH:MM".colorize(:light_black)}", convert: :string)
             key(:price).ask('Price: $', convert: :int)
         end
-        #convert time to string, reorganize the structure, convert to datetime
+    
+        # convert time to string, reorganize the structure, convert to datetime
+    
         split_date = result[:date].split("/")     
         add = split_date[2] + split_date[0] + split_date[1]
         final_date = add.to_datetime
-
+   
         location_result = prompt.select("Please choose a location", Location.location_details)
         location_instance = Location.find_by(id: location_result)
+        
+        ## resul[:time] string to integer add to datetime 
 
-        #### resul[:time] string to integer add to datetime 
         hour = result[:time].split(":")[0].to_i
         minute =result[:time].split(":")[1].to_i
         event_datetime = final_date.change(hour: hour, min: minute) #changes datetime's hour in create event
-        
-        # e1 = Event.create(name: result[:name], date: event_datetime, price: result[:price],user_id: user.id, location_id: location_instance.id)
+    
+
         e1 = Event.create(name: result[:name], date: event_datetime, price: result[:price],user_id: user.id, location_id: location_instance.id)
         Participant.create(event_id: e1.id, user_id: user.id)
-        # Event.participatns should = 1
+        # Event.participants should = 1
         system 'clear'
         puts "#{"New event successfully created!".colorize(:light_yellow)}\n  #{e1.event_info[:name]}"
-        prompt.select("") {|menu| menu.choice "Continue"}
+        prompt.select("") {|menu| menu.choice "Main menu"}
         main_menu
     end
 
@@ -183,8 +186,10 @@ class Interface
             menu.choice "Delete Account", -> {user.delete_account}
             menu.choice "Main Menu", -> {main_menu}
         end
+
         sleep(3)
         main_menu
     end
+
 
 end
